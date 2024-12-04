@@ -45,8 +45,8 @@ class _QuizzesScreenState extends State<QuizzesScreen> {
             ),
             Expanded(
               child: QuizzesListView(
-                quizzes: quizData['quizzes'], // Передаем данные
-                scrollDirection: Axis.vertical, // Указываем ориентацию
+                quizzes: quizData['quizzes'], 
+                scrollDirection: Axis.vertical,
               ),
             ),
           ],

@@ -5,8 +5,7 @@ import 'package:food_footprint/base/quizzes_data.dart';
 import 'package:food_footprint/ui/widgets/quizzes_list.dart';
 
 class HomeScreen extends StatefulWidget {
-  final Function(int, int)
-      onNavigateTo; // Функция, принимающая два параметра (индекс экрана, индекс вкладки)
+  final Function(int, int) onNavigateTo;
 
   const HomeScreen({
     super.key,
@@ -242,8 +241,8 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 108.w,
             margin: EdgeInsets.only(top: 15),
             child: QuizzesListView(
-              quizzes: quizData['quizzes'], // Передаем список викторин
-              scrollDirection: Axis.horizontal, // Горизонтальная прокрутка
+              quizzes: quizData['quizzes'],
+              scrollDirection: Axis.horizontal,
             ),
           )
         ],
