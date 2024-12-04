@@ -10,6 +10,12 @@ class ArticlesAndTipsScreen extends StatefulWidget {
 class _ArticlesAndTipsScreenState extends State<ArticlesAndTipsScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      body: body(),
+    );
+  }
+
+  Widget body() {
+    return Container();
   }
 }

@@ -10,6 +10,12 @@ final lightTheme = ThemeData(
       fontSize: 24,
       fontFamily: "Lato",
     ),
+    headlineMedium: TextStyle(
+      color: AppColors.white,
+      fontWeight: FontWeight.w700,
+      fontSize: 19,
+      fontFamily: "Lato",
+    ),
     titleMedium: TextStyle(
       color: AppColors.white,
       fontWeight: FontWeight.w500,

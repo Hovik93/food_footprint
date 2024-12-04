@@ -6,5 +6,8 @@ class AppImages {
   static const String articlesAndTips = 'assets/icons/articles_and_tips.png';
   static const String settings = 'assets/icons/settings.png';
 
+  static const String questFin = 'assets/icons/quiz_fin.png';
+  static const String favoritesIcon = 'assets/icons/favorites_icon.png';
+
   static const String co2 = 'assets/icons/co2_icon.png';
 }

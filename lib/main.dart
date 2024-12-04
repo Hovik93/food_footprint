@@ -11,25 +11,21 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-        designSize: const Size(375, 812),
-        minTextAdapt: true,
-        splitScreenMode: true,
-        builder: (_, child) {
-          return MaterialApp(
-            // theme:ThemeData(
-            //   scaffoldBackgroundColor: Colors.grey[200],
-            // ),
-            color: Colors.red,
-            debugShowCheckedModeBanner: false,
-            title: 'ColorMatch Inventory',
-            theme: lightTheme,
-            home: const SplashScreen(),
-            routes: routes,
-          );
-        });
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (_, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'ColorMatch Inventory',
+          theme: lightTheme,
+          home: const SplashScreen(),
+          routes: routes,
+        );
+      },
+    );
   }
 }

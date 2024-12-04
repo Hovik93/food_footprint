@@ -38,8 +38,6 @@ class _SplashScreenState extends State<SplashScreen> {
             SizedBox(),
             Image.asset(
               AppImages.co2,
-              // width: 100,
-              // height: 200,
             ),
             Padding(
               padding: EdgeInsets.only(bottom: 80.w),

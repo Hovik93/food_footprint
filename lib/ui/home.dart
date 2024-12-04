@@ -14,9 +14,11 @@ import 'package:food_footprint/ui/body_screen/settings.dart';
 // ignore: must_be_immutable
 class HomePage extends StatefulWidget {
   int? selectedIndex;
+  int? tabIndex;
   HomePage({
     super.key,
     this.selectedIndex,
+    this.tabIndex,
   });
 
   @override
@@ -24,16 +26,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final list = [
-    const HomeScreen(),
-    const ProductScreen(),
-    const FavoritesScreen(),
-    const QuizzesScreen(),
-    const ArticlesAndTipsScreen(),
-    const SettingsScreen(),
-  ];
-
   int? _selectedIndex = 0;
+  int? _tabIndex = 0;
 
   void onTap(int index) {
     if (_selectedIndex != index) {
@@ -48,6 +42,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     if (widget.selectedIndex != null) {
       _selectedIndex = widget.selectedIndex;
+      _tabIndex = widget.tabIndex;
     }
   }
 
@@ -141,7 +136,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void onTapHome(int index, int tabIndex) {
+    setState(() {
+      _selectedIndex = index;
+      _tabIndex = tabIndex;
+    });
+  }
+
   Widget body() {
+    final list = [
+      HomeScreen(onNavigateTo: onTapHome),
+      ProductScreen(initialIndex: _tabIndex ?? 0),
+      const FavoritesScreen(),
+      const QuizzesScreen(),
+      const ArticlesAndTipsScreen(),
+      const SettingsScreen(),
+    ];
     return list[_selectedIndex ?? 0];
   }
 }
