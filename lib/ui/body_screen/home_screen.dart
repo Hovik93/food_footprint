@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:food_footprint/base/colors.dart';
-import 'package:food_footprint/base/quizzes_data.dart';
+import 'package:food_footprint/data/quizzes_data.dart';
 import 'package:food_footprint/ui/widgets/quizzes_list.dart';
 
 class HomeScreen extends StatefulWidget {

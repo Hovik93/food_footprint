@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:food_footprint/base/colors.dart';
 import 'package:food_footprint/base/images.dart';
-import 'package:food_footprint/base/product_information_data.dart';
+import 'package:food_footprint/data/product_information_data.dart';
 import 'package:food_footprint/ui/data_storage.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -17,6 +17,7 @@ class _ProductScreenState extends State<ProductScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<Map<String, dynamic>> localProductInformation = [];
+  List<String> selectedCategories = []; // Для хранения выбранных категорий
 
   @override
   void initState() {
@@ -76,24 +77,39 @@ class _ProductScreenState extends State<ProductScreen>
               style: theme?.titleMedium,
             ),
             const SizedBox(height: 16),
+            // Список категорий
             SizedBox(
               height: 28.w,
               child: ListView.builder(
                 itemCount: localProductInformation.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
+                  String categoryName =
+                      localProductInformation[index].keys.first;
+
                   return GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      setState(() {
+                        if (selectedCategories.contains(categoryName)) {
+                          selectedCategories.remove(categoryName);
+                        } else {
+                          selectedCategories.add(categoryName);
+                        }
+                      });
+                    },
                     child: Container(
                       margin: const EdgeInsets.only(right: 10),
                       padding: const EdgeInsets.only(
                           left: 12, right: 12, bottom: 10, top: 6),
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: AppColors.gray1),
+                        borderRadius: BorderRadius.circular(10),
+                        color: selectedCategories.contains(categoryName)
+                            ? AppColors.green
+                            : AppColors.gray1,
+                      ),
                       child: Center(
                         child: Text(
-                          localProductInformation[index].keys.first,
+                          categoryName,
                           style: theme?.titleSmall,
                         ),
                       ),
@@ -102,6 +118,8 @@ class _ProductScreenState extends State<ProductScreen>
                 },
               ),
             ),
+            const SizedBox(height: 16),
+            // Табы
             TabBar(
               controller: _tabController,
               indicatorColor: AppColors.green,
@@ -142,17 +160,26 @@ class _ProductScreenState extends State<ProductScreen>
       );
     }
 
-    List<Widget> categoryWidgets = [];
+    // Фильтруем данные по выбранным категориям
+    final filteredData = selectedCategories.isEmpty
+        ? localProductInformation
+        : localProductInformation
+            .where((categoryData) =>
+                selectedCategories.contains(categoryData.keys.first))
+            .toList();
 
-    for (var categoryData in localProductInformation) {
-      categoryWidgets.addAll(categoryData.entries.map((category) {
+    return ListView(
+      children: filteredData.map((categoryData) {
+        final categoryName = categoryData.keys.first;
+        final products = categoryData[categoryName];
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                category.key,
+                categoryName,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -169,15 +196,15 @@ class _ProductScreenState extends State<ProductScreen>
                 mainAxisSpacing: 15,
                 childAspectRatio: 0.8,
               ),
-              itemCount: category.value.length,
+              itemCount: products.length,
               itemBuilder: (context, index) {
-                final productName = category.value.keys.elementAt(index);
-                final productDetails = category.value[productName];
+                final productName = products.keys.elementAt(index);
+                final productDetails = products[productName];
                 final images = productDetails['image'];
                 final isFavorite = productDetails['isFavorite'] ?? false;
 
                 return GestureDetector(
-                  onTap: () => _toggleFavorite(category.key, productName),
+                  onTap: () => _toggleFavorite(categoryName, productName),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -197,7 +224,7 @@ class _ProductScreenState extends State<ProductScreen>
                             top: 0,
                             child: GestureDetector(
                               onTap: () =>
-                                  _toggleFavorite(category.key, productName),
+                                  _toggleFavorite(categoryName, productName),
                               child: Container(
                                 width: 32.w,
                                 height: 32.w,
@@ -242,11 +269,7 @@ class _ProductScreenState extends State<ProductScreen>
             ),
           ],
         );
-      }).toList());
-    }
-
-    return ListView(
-      children: categoryWidgets,
+      }).toList(),
     );
   }
 }
