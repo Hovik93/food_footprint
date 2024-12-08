@@ -36,10 +36,6 @@ class _QuizzesScreenState extends State<QuizzesScreen> {
               'Quizzes',
               style: theme?.titleMedium,
             ),
-            // const SizedBox(
-            //   height: 20,
-            // ),
-            // filterLevelsBlock(theme: theme),
             const SizedBox(
               height: 16,
             ),

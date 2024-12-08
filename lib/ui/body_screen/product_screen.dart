@@ -1,8 +1,14 @@
+import 'dart:math';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:food_footprint/base/colors.dart';
 import 'package:food_footprint/base/images.dart';
+import 'package:food_footprint/data/alternatives_data.dart';
 import 'package:food_footprint/data/product_information_data.dart';
+import 'package:food_footprint/ui/body_screen/details_screen/product_details.dart';
 import 'package:food_footprint/ui/data_storage.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -17,7 +23,9 @@ class _ProductScreenState extends State<ProductScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<Map<String, dynamic>> localProductInformation = [];
-  List<String> selectedCategories = []; // Для хранения выбранных категорий
+  List<Map<String, dynamic>> localAlternatives = [];
+  final Map<String, Color> categoryColors = {};
+  List<String> selectedCategories = [];
 
   @override
   void initState() {
@@ -25,6 +33,7 @@ class _ProductScreenState extends State<ProductScreen>
     _tabController = TabController(
         length: 2, vsync: this, initialIndex: widget.initialIndex);
     _initializeData();
+    _initializeAlternatives();
   }
 
   @override
@@ -57,6 +66,87 @@ class _ProductScreenState extends State<ProductScreen>
     });
   }
 
+  Future<void> _initializeAlternatives() async {
+    final hasData = await DataStorage.hasAlternatives();
+    if (!hasData) {
+      await DataStorage.saveAlternatives(alternatives);
+    }
+
+    final data = await DataStorage.getAlternatives();
+
+    setState(() {
+      localAlternatives = (data as List).map((category) {
+        final categoryName = category.keys.first as String;
+        final subCategories = (category[categoryName] as Map).map(
+          (key, value) =>
+              MapEntry(key as String, value as Map<String, dynamic>),
+        );
+
+        return {
+          categoryName: subCategories,
+        };
+      }).toList();
+    });
+  }
+
+  Future<void> toggleAlternativeFavorite(
+      String subCategoryName, String alternativeName) async {
+    final updatedAlternatives = localAlternatives.map((category) {
+      final categoryName = category.keys.first as String;
+      final subCategories = (category[categoryName] as Map).map(
+        (key, value) => MapEntry(key as String, value as Map<String, dynamic>),
+      );
+
+      final updatedSubCategories = subCategories.map((key, subCategory) {
+        if (key == subCategoryName) {
+          final updatedItems = (subCategory['items'] as List).map((item) {
+            final itemMap = item as Map<String, dynamic>;
+            if (itemMap['name'] == alternativeName) {
+              return {
+                ...itemMap,
+                'isFavorite': !(itemMap['isFavorite'] ?? false),
+              };
+            }
+            return itemMap;
+          }).toList();
+
+          return MapEntry(key, {
+            ...subCategory,
+            'items': updatedItems,
+          });
+        }
+        return MapEntry(key, subCategory);
+      });
+
+      return {
+        categoryName: updatedSubCategories,
+      };
+    }).toList();
+
+    await DataStorage.saveAlternatives(updatedAlternatives);
+
+    setState(() {
+      localAlternatives = updatedAlternatives;
+    });
+  }
+
+  Color getRandomColor() {
+    final random = Random();
+    return Color.fromARGB(
+      150,
+      random.nextInt(256),
+      random.nextInt(256),
+      random.nextInt(256),
+    );
+  }
+
+  Color getColorForCategory(String subCategoryName) {
+    if (!categoryColors.containsKey(subCategoryName)) {
+      categoryColors[subCategoryName] = getRandomColor();
+    }
+    return categoryColors[subCategoryName]!;
+  }
+
   @override
   Widget build(BuildContext context) {
     final TextTheme theme = Theme.of(context).textTheme;
@@ -77,7 +167,6 @@ class _ProductScreenState extends State<ProductScreen>
               style: theme?.titleMedium,
             ),
             const SizedBox(height: 16),
-            // Список категорий
             SizedBox(
               height: 28.w,
               child: ListView.builder(
@@ -119,18 +208,31 @@ class _ProductScreenState extends State<ProductScreen>
               ),
             ),
             const SizedBox(height: 16),
-            // Табы
-            TabBar(
-              controller: _tabController,
-              indicatorColor: AppColors.green,
-              labelColor: AppColors.white,
-              unselectedLabelColor: Colors.grey,
-              indicatorWeight: 3,
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerHeight: 0,
-              tabs: const [
-                Tab(text: "Product Information"),
-                Tab(text: "Alternatives"),
+            Stack(
+              children: [
+                Positioned.fill(
+                  child: Container(
+                    alignment: Alignment.bottomCenter,
+                    child: Divider(
+                      color: Colors.grey.shade700,
+                      thickness: 1.0,
+                      height: 0,
+                    ),
+                  ),
+                ),
+                TabBar(
+                  controller: _tabController,
+                  indicatorColor: AppColors.green,
+                  labelColor: AppColors.white,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorWeight: 3,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerHeight: 0,
+                  tabs: const [
+                    Tab(text: "Product Information"),
+                    Tab(text: "Alternatives"),
+                  ],
+                ),
               ],
             ),
             Expanded(
@@ -138,12 +240,7 @@ class _ProductScreenState extends State<ProductScreen>
                 controller: _tabController,
                 children: [
                   productInformationBody(theme: theme),
-                  const Center(
-                    child: Text(
-                      "Content for Alternatives",
-                      style: TextStyle(fontSize: 18, color: Colors.blue),
-                    ),
-                  ),
+                  alternativesBody(theme: theme),
                 ],
               ),
             ),
@@ -160,7 +257,6 @@ class _ProductScreenState extends State<ProductScreen>
       );
     }
 
-    // Фильтруем данные по выбранным категориям
     final filteredData = selectedCategories.isEmpty
         ? localProductInformation
         : localProductInformation
@@ -203,73 +299,306 @@ class _ProductScreenState extends State<ProductScreen>
                 final images = productDetails['image'];
                 final isFavorite = productDetails['isFavorite'] ?? false;
 
-                return GestureDetector(
-                  onTap: () => _toggleFavorite(categoryName, productName),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Stack(
-                        children: [
-                          ClipRRect(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) {
+                                return ProductDetails(
+                                  productName: productName,
+                                  productDetails: productDetails,
+                                );
+                              }),
+                            );
+                          },
+                          child: ClipRRect(
                             borderRadius: BorderRadius.circular(15),
                             child: Image.asset(
                               images,
                               fit: BoxFit.cover,
-                              height: 160.w,
+                              height: 158.w,
                               width: double.infinity,
                             ),
                           ),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: GestureDetector(
-                              onTap: () =>
-                                  _toggleFavorite(categoryName, productName),
-                              child: Container(
-                                width: 32.w,
-                                height: 32.w,
-                                margin: const EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.gray3,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Image.asset(
-                                  AppImages.favoritesIcon,
-                                  color: isFavorite
-                                      ? AppColors.primary
-                                      : AppColors.white,
-                                ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: GestureDetector(
+                            onTap: () =>
+                                _toggleFavorite(categoryName, productName),
+                            child: Container(
+                              width: 32.w,
+                              height: 32.w,
+                              margin: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: AppColors.gray3,
+                                shape: BoxShape.circle,
                               ),
+                              child: Image.asset(
+                                AppImages.favoritesIcon,
+                                color: isFavorite
+                                    ? AppColors.primary
+                                    : AppColors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) {
+                            return ProductDetails(
+                              productName: productName,
+                              productDetails: productDetails,
+                            );
+                          }),
+                        );
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 6),
+                          Text(
+                            productName,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme?.headlineMedium?.copyWith(
+                              fontSize: 14,
+                              color: AppColors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            productDetails["Carbon Footprint"] ?? "",
+                            overflow: TextOverflow.ellipsis,
+                            style: theme?.headlineMedium?.copyWith(
+                              fontSize: 12,
+                              color: AppColors.grayLight,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        productName,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme?.headlineMedium?.copyWith(
-                          fontSize: 14,
-                          color: AppColors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        productDetails["Carbon Footprint"] ?? "",
-                        overflow: TextOverflow.ellipsis,
-                        style: theme?.headlineMedium?.copyWith(
-                          fontSize: 12,
-                          color: AppColors.grayLight,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               },
             ),
           ],
         );
       }).toList(),
+    );
+  }
+
+  Widget alternativesBody({TextTheme? theme}) {
+    final filteredAlternatives = selectedCategories.isEmpty
+        ? localAlternatives
+        : localAlternatives.where((category) {
+            final categoryName = category.keys.first;
+            return selectedCategories.contains(categoryName);
+          }).toList();
+    return filteredAlternatives.isEmpty
+        ? Center(
+            child: Text(
+              "No Alternatives Found",
+              style:
+                  theme?.headlineMedium?.copyWith(color: AppColors.grayLight),
+            ),
+          )
+        : ListView.builder(
+            itemCount: filteredAlternatives.length,
+            itemBuilder: (context, categoryIndex) {
+              final category = filteredAlternatives[categoryIndex];
+              final categoryName = category.keys.first;
+              final subCategories = category[categoryName];
+
+              return _buildCategory(
+                categoryName,
+                subCategories,
+                theme,
+              );
+            },
+          );
+  }
+
+  Widget _buildCategory(String categoryName, Map<String, dynamic> subCategories,
+      TextTheme? theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            categoryName,
+            style: theme?.headlineMedium,
+          ),
+          const SizedBox(height: 12),
+          ...subCategories.entries.map((subCategoryEntry) {
+            final subCategoryName = subCategoryEntry.key;
+            final subCategoryDetails = subCategoryEntry.value;
+            final items = subCategoryDetails['items'];
+            final subCategoryColor = getColorForCategory(subCategoryName);
+
+            return _buildSubCategory(
+              subCategoryName,
+              subCategoryDetails,
+              items,
+              subCategoryColor,
+              theme,
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubCategory(
+    String subCategoryName,
+    Map<String, dynamic> subCategoryDetails,
+    List<dynamic> items,
+    Color subCategoryColor,
+    TextTheme? theme,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(subCategoryDetails['image']),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  subCategoryName,
+                  style: theme?.headlineMedium?.copyWith(fontSize: 14),
+                ),
+                const SizedBox(height: 10),
+                _buildGridItems(
+                    items: items,
+                    crossAxisCount: 2,
+                    itemCount: items.length > 2 ? 2 : items.length,
+                    subCategoryColor: subCategoryColor,
+                    theme: theme,
+                    subCategoryName: subCategoryName),
+                if (items.length > 2)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: _buildGridItems(
+                        items: items,
+                        crossAxisCount: 1,
+                        itemCount: items.length - 2,
+                        subCategoryColor: subCategoryColor,
+                        theme: theme,
+                        startIndex: 2,
+                        subCategoryName: subCategoryName),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGridItems({
+    required List<dynamic> items,
+    required int crossAxisCount,
+    required int itemCount,
+    required Color subCategoryColor,
+    required TextTheme? theme,
+    required String subCategoryName,
+    int startIndex = 0,
+  }) {
+    return MasonryGridView.count(
+      crossAxisCount: crossAxisCount,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 8,
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        final item = items[startIndex + index];
+        final isFavorite = item['isFavorite'] ?? false;
+
+        return Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                child: Container(
+                  height: 119,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: subCategoryColor.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            item['name'],
+                            style:
+                                theme?.headlineMedium?.copyWith(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        item['description'],
+                        style: theme?.titleSmall,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () {
+                  toggleAlternativeFavorite(
+                    subCategoryName,
+                    item['name'],
+                  );
+                },
+                child: Container(
+                  width: 32.w,
+                  height: 32.w,
+                  decoration: BoxDecoration(
+                    color: AppColors.gray3,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset(
+                    AppImages.favoritesIcon,
+                    color: isFavorite ? AppColors.primary : AppColors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

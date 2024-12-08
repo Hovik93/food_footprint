@@ -7,10 +7,10 @@ class QuizzesListView extends StatelessWidget {
   final Axis scrollDirection;
 
   const QuizzesListView({
-    Key? key,
+    super.key,
     required this.quizzes,
     this.scrollDirection = Axis.vertical,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class QuizzesListView extends StatelessWidget {
                   style: theme.titleSmall,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: scrollDirection == Axis.horizontal ? 30 : 12),
               GestureDetector(
                 onTap: () {
                   Navigator.push(

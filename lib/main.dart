@@ -1,11 +1,43 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:food_footprint/router/router.dart';
 import 'package:food_footprint/theme/theme.dart';
 import 'package:food_footprint/ui/splash_screen.dart';
+import 'package:food_footprint/ui/widgets/error_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.dumpErrorToConsole(details);
+
+    Zone.current.handleUncaughtError(details.exception, details.stack!);
+  };
+
+  runZonedGuarded(() {
+    runApp(const MyApp());
+  }, (error, stackTrace) {
+    ErrorHandler.showErrorScreen();
+  });
+}
+
+class ErrorHandler {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
+  static void showErrorScreen() {
+    runApp(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        home: const ErrorScreen(
+          onRefresh: restartApp, 
+        ),
+      ),
+    );
+  }
+
+  static void restartApp() {
+    runApp(const MyApp());
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -20,7 +52,7 @@ class MyApp extends StatelessWidget {
       builder: (_, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'ColorMatch Inventory',
+          title: 'Food Footprint',
           theme: lightTheme,
           home: const SplashScreen(),
           routes: routes,

@@ -19,9 +19,9 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
-  int questionNumber = 0; // Текущий вопрос
-  int selectedIndex = -1; // Индекс выбранного ответа
-  bool showCorrectAnswer = false; // Флаг для отображения правильного ответа
+  int questionNumber = 0;
+  int selectedIndex = -1;
+  bool showCorrectAnswer = false;
   int correctAnswersCount = 0;
   bool finishQuiz = false;
 
@@ -100,34 +100,35 @@ class _QuizPageState extends State<QuizPage> {
   Widget bottomButton({TextTheme? theme}) {
     return GestureDetector(
       onTap: () {
-        if (selectedIndex == -1)
-          return; // Нельзя двигаться дальше без выбора ответа
+        if (finishQuiz) {
+          Navigator.pop(context);
+        } else {
+          if (selectedIndex == -1) return;
 
-        if (widget.questions?[questionNumber]['options'][selectedIndex] ==
-            widget.questions?[questionNumber]['correctAnswer']) {
-          correctAnswersCount++; // Увеличиваем счетчик правильных ответов
-        }
-
-        setState(() {
-          showCorrectAnswer = true; // Отображаем правильный ответ
-        });
-
-        // Задержка перед переходом к следующему вопросу
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            if (questionNumber < (widget.questions?.length ?? 0) - 1) {
-              setState(() {
-                questionNumber++; // Переход к следующему вопросу
-                selectedIndex = -1; // Сброс выбора
-                showCorrectAnswer = false; // Скрываем правильный ответ
-              });
-            } else {
-              finishQuiz = true;
-              setState(() {});
-              // Завершение квиза
-            }
+          if (widget.questions?[questionNumber]['options'][selectedIndex] ==
+              widget.questions?[questionNumber]['correctAnswer']) {
+            correctAnswersCount++;
           }
-        });
+
+          setState(() {
+            showCorrectAnswer = true;
+          });
+
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              if (questionNumber < (widget.questions?.length ?? 0) - 1) {
+                setState(() {
+                  questionNumber++;
+                  selectedIndex = -1;
+                  showCorrectAnswer = false;
+                });
+              } else {
+                finishQuiz = true;
+                setState(() {});
+              }
+            }
+          });
+        }
       },
       child: Container(
         width: double.infinity,
@@ -135,9 +136,7 @@ class _QuizPageState extends State<QuizPage> {
         margin: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 20.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: selectedIndex == -1
-              ? AppColors.gray3
-              : AppColors.primary, // Блокируем кнопку, если нет выбора
+          color: selectedIndex == -1 ? AppColors.gray3 : AppColors.primary,
         ),
         child: Center(
           child: Text(
@@ -176,24 +175,21 @@ class _QuizPageState extends State<QuizPage> {
                     Color borderColor = Colors.transparent;
 
                     if (showCorrectAnswer) {
-                      // Если правильный ответ показывается
                       if (optionText == correctText) {
-                        borderColor =
-                            AppColors.green; // Зеленая рамка правильного ответа
+                        borderColor = AppColors.green;
                       }
                       if (ind == selectedIndex) {
                         backgroundColor = optionText == correctText
-                            ? AppColors.green // Зеленый для правильного ответа
-                            : Colors.red; // Красный для неправильного ответа
+                            ? AppColors.green
+                            : Colors.red;
                       }
                     } else if (ind == selectedIndex) {
-                      backgroundColor =
-                          AppColors.gray3; // Подсветка выбора до нажатия Next
+                      backgroundColor = AppColors.gray3;
                     }
 
                     return GestureDetector(
                       onTap: showCorrectAnswer
-                          ? null // Блокируем выбор, если показывается правильный ответ
+                          ? null
                           : () {
                               setState(() {
                                 selectedIndex = ind;
@@ -257,8 +253,70 @@ class _QuizPageState extends State<QuizPage> {
               height: 72.w,
             ),
           ),
+        ),
+        Text(
+          "To reduce your footprint:",
+          style: theme?.titleSmall,
+        ),
+        const SizedBox(
+          height: 5,
+        ),
+        Row(
+          children: [
+            dote(),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                "Consider reducing your consumption of beef.",
+                style: theme?.titleSmall,
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(
+            children: [
+              dote(),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Try plant-based alternatives like lentils, beans, or tofu.",
+                  style: theme?.titleSmall,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: dote(),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                "Opt for chicken or pork, which have a lower carbon footprint than beef.",
+                style: theme?.titleSmall,
+                softWrap: true,
+              ),
+            ),
+          ],
         )
       ],
+    );
+  }
+
+  Widget dote() {
+    return Container(
+      width: 5,
+      height: 5,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        shape: BoxShape.circle,
+      ),
     );
   }
 }

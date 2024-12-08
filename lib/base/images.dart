@@ -8,6 +8,11 @@ class AppImages {
 
   static const String questFin = 'assets/icons/quiz_fin.png';
   static const String favoritesIcon = 'assets/icons/favorites_icon.png';
+  static const String bookmark = 'assets/icons/Bookmark.png';
 
   static const String co2 = 'assets/icons/co2_icon.png';
+  static const String tipOfTheDay = 'assets/tip_of_the_day.png';
+  static const String noFavorite = 'assets/noFavorite.png';
+
+  static const String error = 'assets/error.png';
 }
