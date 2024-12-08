@@ -578,9 +578,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           Container(
-            height: 122.w,
+            height: 108.w,
             margin: EdgeInsets.only(top: 15),
             child: QuizzesListView(
+              isHome: true,
               quizzes: quizData['quizzes'],
               scrollDirection: Axis.horizontal,
             ),

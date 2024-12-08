@@ -5,11 +5,13 @@ import 'package:food_footprint/ui/body_screen/quiz_block.dart/quiz.dart';
 class QuizzesListView extends StatelessWidget {
   final List<Map<String, dynamic>> quizzes;
   final Axis scrollDirection;
+  final bool? isHome;
 
   const QuizzesListView({
     super.key,
     required this.quizzes,
     this.scrollDirection = Axis.vertical,
+    this.isHome = false,
   });
 
   @override
@@ -44,6 +46,7 @@ class QuizzesListView extends StatelessWidget {
                 ),
               ),
               SizedBox(height: scrollDirection == Axis.horizontal ? 30 : 12),
+              if(isHome== true) const Spacer(),
               GestureDetector(
                 onTap: () {
                   Navigator.push(
