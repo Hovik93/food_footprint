@@ -187,9 +187,9 @@ class _ProductScreenState extends State<ProductScreen>
                       });
                     },
                     child: Container(
-                      margin: const EdgeInsets.only(right: 10),
-                      padding: const EdgeInsets.only(
-                          left: 12, right: 12, bottom: 10, top: 6),
+                      margin: EdgeInsets.only(right: 10.w),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color: selectedCategories.contains(categoryName)
@@ -199,7 +199,12 @@ class _ProductScreenState extends State<ProductScreen>
                       child: Center(
                         child: Text(
                           categoryName,
-                          style: theme?.titleSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: theme?.titleSmall?.copyWith(
+                            fontSize: 12.sp,
+                          ),
                         ),
                       ),
                     ),

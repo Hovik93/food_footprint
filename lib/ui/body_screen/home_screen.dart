@@ -207,7 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            // "Tip of the day" button Fixed bottom screen
           ],
         ),
       ),

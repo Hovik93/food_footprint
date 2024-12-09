@@ -8,15 +8,22 @@ import 'package:food_footprint/ui/widgets/error_screen.dart';
 
 void main() {
   FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.dumpErrorToConsole(details);
+    if (details.exception.toString().contains('A RenderFlex overflowed')) {
+      FlutterError.dumpErrorToConsole(details);
+      return;
+    }
 
-    Zone.current.handleUncaughtError(details.exception, details.stack!);
+    ErrorHandler.showErrorScreen();
   };
 
   runZonedGuarded(() {
     runApp(const MyApp());
   }, (error, stackTrace) {
-    ErrorHandler.showErrorScreen();
+    if (!error.toString().contains('A RenderFlex overflowed')) {
+      ErrorHandler.showErrorScreen();
+    } else {
+      debugPrint('Игнорируем RenderFlex overflow: $error');
+    }
   });
 }
 
@@ -29,7 +36,7 @@ class ErrorHandler {
       MaterialApp(
         navigatorKey: navigatorKey,
         home: const ErrorScreen(
-          onRefresh: restartApp, 
+          onRefresh: restartApp,
         ),
       ),
     );
@@ -49,7 +56,7 @@ class MyApp extends StatelessWidget {
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (_, child) {
+      builder: (_, __) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Food Footprint',

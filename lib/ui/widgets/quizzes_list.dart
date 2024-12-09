@@ -45,8 +45,7 @@ class QuizzesListView extends StatelessWidget {
                   style: theme.titleSmall,
                 ),
               ),
-              SizedBox(height: scrollDirection == Axis.horizontal ? 30 : 12),
-              if(isHome== true) const Spacer(),
+              if (isHome == true) const Spacer(),
               GestureDetector(
                 onTap: () {
                   Navigator.push(

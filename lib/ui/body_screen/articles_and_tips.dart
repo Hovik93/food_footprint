@@ -88,23 +88,7 @@ class _ArticlesAndTipsScreenState extends State<ArticlesAndTipsScreen> {
                                 style: theme?.titleSmall,
                               ),
                               SizedBox(
-                                height: 30.w,
-                              ),
-                              Center(
-                                child: SmoothPageIndicator(
-                                  controller: _pageController,
-                                  count: 10,
-                                  effect: const ScrollingDotsEffect(
-                                    activeDotScale: 1.5,
-                                    maxVisibleDots: 5,
-                                    dotWidth: 12,
-                                    dotHeight: 8,
-                                    dotColor: Colors.grey,
-                                    activeDotColor: Colors.white,
-                                    spacing: 6,
-                                    fixedCenter: false,
-                                  ),
-                                ),
+                                height: 44.w,
                               ),
                             ],
                           ),
@@ -112,6 +96,27 @@ class _ArticlesAndTipsScreenState extends State<ArticlesAndTipsScreen> {
                       ],
                     );
                   },
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: SmoothPageIndicator(
+                    controller: _pageController,
+                    count: 10,
+                    effect: const ScrollingDotsEffect(
+                      activeDotScale: 1.5,
+                      maxVisibleDots: 5,
+                      dotWidth: 12,
+                      dotHeight: 8,
+                      dotColor: Colors.grey,
+                      activeDotColor: Colors.white,
+                      spacing: 6,
+                      fixedCenter: false,
+                    ),
+                  ),
                 ),
               ),
               Positioned(
